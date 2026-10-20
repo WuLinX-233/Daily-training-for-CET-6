@@ -13,7 +13,11 @@ async function launch(userDir) {
   const p = spawn(CHROME, [
     '--headless=new', '--disable-gpu', '--no-sandbox', '--no-first-run',
     '--disable-dev-shm-usage', '--mute-audio',
-    '--no-proxy-server', '--proxy-bypass-list=*',
+    // 默认绕过代理（本地 127.0.0.1 测试用）；验证线上站点时用
+    // CHROME_PROXY=http://127.0.0.1:7897 走梯子
+    ...(process.env.CHROME_PROXY
+      ? ['--proxy-server=' + process.env.CHROME_PROXY]
+      : ['--no-proxy-server', '--proxy-bypass-list=*']),
     '--disable-background-timer-throttling',
     '--autoplay-policy=no-user-gesture-required',
     '--remote-debugging-port=' + PORT,
