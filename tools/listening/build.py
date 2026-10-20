@@ -236,9 +236,15 @@ def main():
 
             # 切点一律从「本组第一个停顿的起点」往前推，这样 qAt 与 start 必然自洽：
             # g_start − start = dur + LEAD_IN = qAt。用 T[i0][0]+off 算只在 dur==dur_t 时等价
+            #
+            # ⚠️ 实测 `off = g_start - T[i1][1]` 在 77 段里没有一段为 0（中位数 +12.6 秒），
+            # 说明「g_start 就是原文最后一句在音频里的结束位置」这个假设不成立 ——
+            # 切片起点因此整体后移，而下面 a/b 仍按「从首句前 10 秒开始」算，于是每句都晚了 off 秒。
+            # 这里直接把 off 从时间轴上减掉（等价于 tools/listening/realign.py 做的事）。
+            # 彻底修法是改用 start = T[i0][0] - LEAD_IN 重切，见 tools/listening/recut.py。
             start = g_start - dur - LEAD_IN
             end = min(g_end + TAIL, envd['dur'] - 0.05)   # 最后一段别越界
-            qAt = dur + LEAD_IN
+            qAt = dur + LEAD_IN - off
 
             nums = sorted({n for l in lines[i0:i1 + 1] for n in (l.get('marks') or [])})
             qs = []
@@ -256,9 +262,11 @@ def main():
             out_lines = []
             for idx in range(i0, i1 + 1):
                 ln = lines[idx]
-                a = (T[idx][0] - T[i0][0]) * scale + LEAD_IN
-                b = (T[idx][1] - T[i0][0]) * scale + LEAD_IN
-                b = min(b, qAt)
+                # 减 off：切片起点比设计值晚了 off 秒，时间轴得跟着回退
+                a = (T[idx][0] - T[i0][0]) * scale + LEAD_IN - off
+                b = (T[idx][1] - T[i0][0]) * scale + LEAD_IN - off
+                a = max(0.0, a)
+                b = max(a + 0.05, min(b, qAt))
                 item = {'sp': ln.get('speaker') or '', 't': ln['text'],
                         'zh': ln.get('zh', ''), 'a': round(a, 2), 'b': round(b, 2)}
                 if ln.get('marks'):

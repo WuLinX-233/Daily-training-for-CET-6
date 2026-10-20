@@ -2,6 +2,9 @@
 _probe/
 _build/
 
+# 上游源音频（tools/listening/dl.py 可重新下载，67MB，不进仓库）
+tools/listening/src/
+
 # 系统杂项
 .DS_Store
 Thumbs.db
