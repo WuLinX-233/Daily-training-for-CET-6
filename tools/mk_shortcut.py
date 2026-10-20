@@ -1,10 +1,27 @@
 # -*- coding: utf-8 -*-
-"""用 IShellLinkW + IPersistFile COM 接口创建带图标的桌面快捷方式"""
+"""用 IShellLinkW + IPersistFile COM 接口创建带图标的桌面快捷方式
+
+路径全部从本文件位置推导，仓库搬到哪都能跑：
+  图标   <仓库>/icons/icon.ico
+  目标   <桌面>/CET6训练启动器.bat
+  产物   <桌面>/CET6训练.lnk
+"""
 import ctypes
+import os
 from ctypes import byref, c_void_p, c_wchar_p, c_int, POINTER, WINFUNCTYPE, windll, WinError
 
 HRESULT = ctypes.c_long
 CLSCTX_INPROC_SERVER = 1
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DESKTOP = os.path.join(os.path.expanduser('~'), 'Desktop')
+ICON = os.path.join(ROOT, 'icons', 'icon.ico')
+BAT = os.path.join(DESKTOP, 'CET6训练启动器.bat')
+LNK = os.path.join(DESKTOP, 'CET6训练.lnk')
+
+for _p in (ICON, BAT):
+    if not os.path.exists(_p):
+        raise SystemExit('找不到：%s' % _p)
 
 
 class GUID(ctypes.Structure):
@@ -50,14 +67,11 @@ def check(hr, what):
         raise WinError(hr)
 
 
-check(call(20, WINFUNCTYPE(HRESULT, c_void_p, c_wchar_p),
-           r"C:\Users\WuLinX\Desktop\CET6训练启动器.bat"), "SetPath")
-check(call(17, WINFUNCTYPE(HRESULT, c_void_p, c_wchar_p, c_int),
-           r"C:\Users\WuLinX\WorkBuddy AI\2026-10-18-16-15-19\cet6-app\icons\icon.ico", 0), "SetIconLocation")
+check(call(20, WINFUNCTYPE(HRESULT, c_void_p, c_wchar_p), BAT), "SetPath")
+check(call(17, WINFUNCTYPE(HRESULT, c_void_p, c_wchar_p, c_int), ICON, 0), "SetIconLocation")
 check(call(7, WINFUNCTYPE(HRESULT, c_void_p, c_wchar_p),
            "CET-6 每日训练：单词闪卡 · 每日阅读 · 每日听力 · 每日翻译"), "SetDescription")
-check(call(9, WINFUNCTYPE(HRESULT, c_void_p, c_wchar_p),
-           r"C:\Users\WuLinX\Desktop"), "SetWorkingDirectory")
+check(call(9, WINFUNCTYPE(HRESULT, c_void_p, c_wchar_p), DESKTOP), "SetWorkingDirectory")
 
 # QueryInterface -> IPersistFile
 pf = c_void_p()
@@ -67,6 +81,9 @@ check(qi(sl, byref(IID_IPersistFile), byref(pf)), "QueryInterface")
 pvtbl = ctypes.cast(ctypes.cast(pf, POINTER(c_void_p))[0], POINTER(c_void_p))
 save = WINFUNCTYPE(HRESULT, c_void_p, c_wchar_p, c_int)(
     pvtbl[6])  # IPersistFile::Save = vtable index 6
-check(save(pf, r"C:\Users\WuLinX\Desktop\CET6训练.lnk", True), "Save")
+check(save(pf, LNK, True), "Save")
 
 print("shortcut created OK")
+print("  target:", BAT)
+print("  icon  :", ICON)
+print("  lnk   :", LNK)

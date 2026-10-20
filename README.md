@@ -17,7 +17,7 @@
 ## 一、目录结构
 
 ```
-cet6-app/
+D:\cet6\                    ← 仓库根目录，同时也是部署目录（Pages 直接从 main 分支发布）
 ├── index.html              ← 页面骨架
 ├── css/
 │   └── style.css           ← 全部样式（手机竖屏优先，按钮 ≥ 44px）
@@ -42,10 +42,12 @@ cet6-app/
 ├── tools/
 │   ├── build-listen-data.py ← 从公开真题仓库生成 listen/*.json
 │   ├── mark-high-freq.py ← 把「真题高频」标记写回 words.json 并把高频词排到最前
-│   ├── sync-deploy.py ← 同步到部署目录（去掉本地维护文件，README 加部署版抬头）
-│   └── listening/ ← 每日听力 77 段的完整构建管线（下载 → 包络 → 切点 → 切片 → 校验）
-│   ├── reading/ ← 每日阅读 57 篇的构建管线（取 TXT → 抽原文 → 选长难句 → 写解析 → 校验）
-│   └── translation/ ← 每日翻译 57 篇的构建管线（取 md → 切块 → 手写译文 → 合并 → 校验）
+│   ├── push.sh            ← 一键推送（token 只在命令里用一次，不写进 .git/config）
+│   ├── check_live.js      ← 线上验收：无头 Chrome 打开 Pages 真跑一遍
+│   ├── mk_shortcut.py     ← 生成桌面快捷方式（图标路径从仓库位置推导）
+│   ├── listening/         ← 每日听力 77 段的完整构建管线（下载 → 包络 → 切点 → 切片 → 校验）
+│   ├── reading/           ← 每日阅读 57 篇的构建管线（取 TXT → 抽原文 → 选长难句 → 写解析 → 校验）
+│   └── translation/       ← 每日翻译 57 篇的构建管线（取 md → 切块 → 手写译文 → 合并 → 校验）
 └── README.md               ← 本文件
 ```
 
@@ -67,6 +69,9 @@ cet6-app/
 ---
 
 ## 二、本地跑通（电脑 + 手机）
+
+> **工作目录**：`D:\cet6` —— 既是仓库克隆，也是本地运行目录，也是 Pages 的发布源，一份东西三用。
+> 桌面的「CET6训练」快捷方式 → `CET6训练启动器.bat`（`APP_DIR` 指向 `D:\cet6`），双击就能起服务。
 
 > ⚠️ **不能双击 index.html 打开**。`file://` 协议下浏览器禁止读取本地 JSON，页面会提示加载失败。必须用本地服务器。
 
@@ -101,18 +106,34 @@ cet6-app/
 
 ## 三、部署到 GitHub Pages
 
-1. GitHub → **New repository** → 名字 `cet6` → **Public** → Create
-2. **Add file → Upload files**，把 `cet6-app` **里面的文件**全拖进去（`index.html` 必须在仓库根目录）→ Commit
+**已经上线了**：<https://wulinx-233.github.io/Daily-training-for-CET-6/>
+仓库：<https://github.com/WuLinX-233/Daily-training-for-CET-6>（Public）
 
-> 整个目录约 102MB，其中 `audio/seg/` 77 个 mp3 每个 1–1.8MB，网页上传完全没问题（单文件上限 25MB），
-> 但**一次拖 77 个文件会比较慢**，建议用 GitHub Desktop 把整个文件夹同步上去。
-> GitHub Pages 单仓库上限 1GB，还留了很多余量。
+工作目录 `D:\cet6` 就是这个仓库的克隆，`.git` 在里面，改完直接推：
 
-3. **Settings → Pages** → Source 选 `Deploy from a branch` → Branch `main` + `/ (root)` → Save
-4. 等 1–2 分钟，得到 `https://你的用户名.github.io/cet6/`
-5. 手机开同一网址，同样可"添加到主屏幕"
+```bash
+cd /d D:\cet6
+git add -A
+git commit -m "改了什么"
+git push origin main          # 走 VPN；token 用 tools/push.sh 传，别写进配置
+```
 
-以后更新内容：网页上点开 `reading.json` → 铅笔 → 改 → Commit，等 30 秒刷新。
+推送成功后 GitHub Pages 约 30 秒自动重新发布，刷一下线上地址就是新版本。
+
+> **代理**：`github.com` 的 git 流量在这个网络环境里必须走梯子，
+> `.git/config` 里已经存了 `http.proxy=http://127.0.0.1:7897`（梯子没开时会报连接失败，开了就好）。
+> 只想验证线上是否正常，跑 `node tools/check_live.js`（需要 `CHROME_PROXY=http://127.0.0.1:7897`）。
+
+> **从零重建的话**（换账号/换机器）：
+> 1. GitHub → **New repository** → Public → Create
+> 2. `git remote add origin https://github.com/<用户名>/<仓库名>.git`
+> 3. `git push -u origin main`（token 用 classic PAT，勾 `repo`；fine-grained PAT 要显式给 Contents: Read and write）
+> 4. **Settings → Pages** → Source `Deploy from a branch` → Branch `main` + `/ (root)` → Save
+>
+> 仓库约 186MB（`audio/` 97MB + `.git` 83MB），首次推送 84MB 左右要跑十分钟；
+> Pages 单仓库上限 1GB，余量足够。
+
+`index.html` 必须在仓库根目录 —— 现在就是。`.nojekyll` 是空文件，作用是让 Pages 跳过 Jekyll 处理，别删。
 
 ---
 

@@ -1,4 +1,5 @@
 // 翻译模块冒烟测试：57 篇真题是否渲染、参考译文能否展开、草稿是否自动保存
+const path = require('path');
 const { launch, CDP, sleep } = require('../listening/cdp.js');
 
 const URL = 'http://127.0.0.1:8124/index.html';
@@ -10,7 +11,9 @@ function ok(name, cond, extra) {
 }
 
 (async () => {
-  const proc = await launch('C:/Users/WuLinX/WorkBuddy AI/2026-10-18-16-15-19/cet6-app/_probe/chrome');
+  // 无头 Chrome 的临时 profile，跟着仓库走（_probe/ 已 gitignore）
+  const profile = path.join(__dirname, '..', '..', '_probe', 'chrome');
+  const proc = await launch(profile);
   const cdp = await CDP.connect();
   await cdp.send('Page.enable');
   await cdp.send('Runtime.enable');
@@ -85,7 +88,7 @@ function ok(name, cond, extra) {
     console.log('异常: ' + e.message);
     fail++;
   } finally {
-    cdp.close();
+    try { await cdp.quit(); } catch (e) {}   // Browser.close：真正关掉 Chrome
     try { proc.kill(); } catch (e) {}
   }
   process.exit(fail ? 1 : 0);

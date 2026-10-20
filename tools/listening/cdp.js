@@ -8,7 +8,31 @@ const PORT = 9333;
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+// 上一轮可能留下仍占着调试端口的 Chrome（proc.kill() 只杀得掉启动器进程，
+// 浏览器本体常驻），不清掉的话下一轮会连到旧实例、读到旧页面状态，
+// 测试就会出现「tab 点得到、面板却是空的」这种假失败。
+async function killStale() {
+  try {
+    const r = await fetch('http://127.0.0.1:' + PORT + '/json/version');
+    if (!r.ok) return;
+    const v = await r.json();
+    const ws = new WebSocket(v.webSocketDebuggerUrl);
+    await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
+    ws.send(JSON.stringify({ id: 1, method: 'Browser.close' }));
+    await sleep(400);
+    try { ws.close(); } catch (e) { /* ignore */ }
+  } catch (e) {
+    return;                       // 没有旧实例
+  }
+  for (let i = 0; i < 24; i++) {  // 等端口真正释放，最多 6 秒
+    try { await fetch('http://127.0.0.1:' + PORT + '/json/version'); }
+    catch (e) { return; }
+    await sleep(250);
+  }
+}
+
 async function launch(userDir) {
+  await killStale();
   fs.mkdirSync(userDir, { recursive: true });
   const p = spawn(CHROME, [
     '--headless=new', '--disable-gpu', '--no-sandbox', '--no-first-run',
@@ -69,6 +93,11 @@ class CDP {
     });
     if (r.exceptionDetails) throw new Error('页面异常: ' + JSON.stringify(r.exceptionDetails).slice(0, 800));
     return r.result.value;
+  }
+  // 收尾：让浏览器自己退出，光 close() 关 ws 是关不掉 Chrome 的
+  async quit() {
+    try { await this.send('Browser.close'); } catch (e) { /* ignore */ }
+    this.close();
   }
   close() { try { this.ws.close(); } catch (e) {} }
 }
