@@ -1,0 +1,482 @@
+[
+ {
+  "id": "2023-06-1",
+  "label": "2023年6月 第一套",
+  "year": 2023,
+  "month": 6,
+  "set": 1,
+  "count": 148,
+  "sections": [
+   {
+    "name": "Conversation One",
+    "n": 23
+   },
+   {
+    "name": "Conversation Two",
+    "n": 20
+   },
+   {
+    "name": "Passage One",
+    "n": 17
+   },
+   {
+    "name": "Passage Two",
+    "n": 19
+   },
+   {
+    "name": "Recording One",
+    "n": 21
+   },
+   {
+    "name": "Recording Two",
+    "n": 28
+   },
+   {
+    "name": "Recording Three",
+    "n": 20
+   }
+  ],
+  "zhCount": 148,
+  "timed": false
+ },
+ {
+  "id": "2023-06-2",
+  "label": "2023年6月 第二套",
+  "year": 2023,
+  "month": 6,
+  "set": 2,
+  "count": 147,
+  "sections": [
+   {
+    "name": "Conversation One",
+    "n": 25
+   },
+   {
+    "name": "Conversation Two",
+    "n": 26
+   },
+   {
+    "name": "Passage One",
+    "n": 14
+   },
+   {
+    "name": "Passage Two",
+    "n": 18
+   },
+   {
+    "name": "Recording One",
+    "n": 21
+   },
+   {
+    "name": "Recording Two",
+    "n": 22
+   },
+   {
+    "name": "Recording Three",
+    "n": 21
+   }
+  ],
+  "zhCount": 147,
+  "timed": false
+ },
+ {
+  "id": "2023-12-1",
+  "label": "2023年12月 第一套",
+  "year": 2023,
+  "month": 12,
+  "set": 1,
+  "count": 157,
+  "sections": [
+   {
+    "name": "Conversation One",
+    "n": 36
+   },
+   {
+    "name": "Conversation Two",
+    "n": 23
+   },
+   {
+    "name": "Passage One",
+    "n": 16
+   },
+   {
+    "name": "Passage Two",
+    "n": 17
+   },
+   {
+    "name": "Recording One",
+    "n": 28
+   },
+   {
+    "name": "Recording Two",
+    "n": 18
+   },
+   {
+    "name": "Recording Three",
+    "n": 19
+   }
+  ],
+  "zhCount": 157,
+  "timed": false
+ },
+ {
+  "id": "2023-12-2",
+  "label": "2023年12月 第二套",
+  "year": 2023,
+  "month": 12,
+  "set": 2,
+  "count": 168,
+  "sections": [
+   {
+    "name": "Conversation One",
+    "n": 34
+   },
+   {
+    "name": "Conversation Two",
+    "n": 37
+   },
+   {
+    "name": "Passage One",
+    "n": 19
+   },
+   {
+    "name": "Passage Two",
+    "n": 15
+   },
+   {
+    "name": "Recording One",
+    "n": 17
+   },
+   {
+    "name": "Recording Two",
+    "n": 21
+   },
+   {
+    "name": "Recording Three",
+    "n": 25
+   }
+  ],
+  "zhCount": 168,
+  "timed": false
+ },
+ {
+  "id": "2024-06-1",
+  "label": "2024年6月 第一套",
+  "year": 2024,
+  "month": 6,
+  "set": 1,
+  "count": 145,
+  "sections": [
+   {
+    "name": "Conversation One",
+    "n": 28
+   },
+   {
+    "name": "Conversation Two",
+    "n": 27
+   },
+   {
+    "name": "Passage One",
+    "n": 10
+   },
+   {
+    "name": "Passage Two",
+    "n": 15
+   },
+   {
+    "name": "Recording One",
+    "n": 32
+   },
+   {
+    "name": "Recording Two",
+    "n": 18
+   },
+   {
+    "name": "Recording Three",
+    "n": 15
+   }
+  ],
+  "zhCount": 145,
+  "timed": false
+ },
+ {
+  "id": "2024-06-2",
+  "label": "2024年6月 第二套",
+  "year": 2024,
+  "month": 6,
+  "set": 2,
+  "count": 136,
+  "sections": [
+   {
+    "name": "Conversation One",
+    "n": 30
+   },
+   {
+    "name": "Conversation Two",
+    "n": 27
+   },
+   {
+    "name": "Passage One",
+    "n": 12
+   },
+   {
+    "name": "Passage Two",
+    "n": 12
+   },
+   {
+    "name": "Recording One",
+    "n": 21
+   },
+   {
+    "name": "Recording Two",
+    "n": 20
+   },
+   {
+    "name": "Recording Three",
+    "n": 14
+   }
+  ],
+  "zhCount": 136,
+  "timed": false
+ },
+ {
+  "id": "2024-12-1",
+  "label": "2024年12月 第一套",
+  "year": 2024,
+  "month": 12,
+  "set": 1,
+  "count": 164,
+  "sections": [
+   {
+    "name": "Conversation One",
+    "n": 38
+   },
+   {
+    "name": "Conversation Two",
+    "n": 31
+   },
+   {
+    "name": "Passage One",
+    "n": 8
+   },
+   {
+    "name": "Passage Two",
+    "n": 23
+   },
+   {
+    "name": "Recording One",
+    "n": 18
+   },
+   {
+    "name": "Recording Two",
+    "n": 25
+   },
+   {
+    "name": "Recording Three",
+    "n": 21
+   }
+  ],
+  "zhCount": 164,
+  "timed": false
+ },
+ {
+  "id": "2024-12-2",
+  "label": "2024年12月 第二套",
+  "year": 2024,
+  "month": 12,
+  "set": 2,
+  "count": 150,
+  "sections": [
+   {
+    "name": "Conversation One",
+    "n": 23
+   },
+   {
+    "name": "Conversation Two",
+    "n": 39
+   },
+   {
+    "name": "Passage One",
+    "n": 12
+   },
+   {
+    "name": "Passage Two",
+    "n": 13
+   },
+   {
+    "name": "Recording One",
+    "n": 25
+   },
+   {
+    "name": "Recording Two",
+    "n": 16
+   },
+   {
+    "name": "Recording Three",
+    "n": 22
+   }
+  ],
+  "zhCount": 150,
+  "timed": false
+ },
+ {
+  "id": "2025-06-1",
+  "label": "2025年6月 第一套",
+  "year": 2025,
+  "month": 6,
+  "set": 1,
+  "count": 159,
+  "sections": [
+   {
+    "name": "Conversation One",
+    "n": 31
+   },
+   {
+    "name": "Conversation Two",
+    "n": 32
+   },
+   {
+    "name": "Passage One",
+    "n": 9
+   },
+   {
+    "name": "Passage Two",
+    "n": 17
+   },
+   {
+    "name": "Recording One",
+    "n": 23
+   },
+   {
+    "name": "Recording Two",
+    "n": 23
+   },
+   {
+    "name": "Recording Three",
+    "n": 24
+   }
+  ],
+  "zhCount": 159,
+  "timed": false
+ },
+ {
+  "id": "2025-06-2",
+  "label": "2025年6月 第二套",
+  "year": 2025,
+  "month": 6,
+  "set": 2,
+  "count": 159,
+  "sections": [
+   {
+    "name": "Conversation One",
+    "n": 37
+   },
+   {
+    "name": "Conversation Two",
+    "n": 23
+   },
+   {
+    "name": "Passage One",
+    "n": 19
+   },
+   {
+    "name": "Passage Two",
+    "n": 14
+   },
+   {
+    "name": "Recording One",
+    "n": 15
+   },
+   {
+    "name": "Recording Two",
+    "n": 29
+   },
+   {
+    "name": "Recording Three",
+    "n": 22
+   }
+  ],
+  "zhCount": 159,
+  "timed": false
+ },
+ {
+  "id": "2025-12-1",
+  "label": "2025年12月 第一套",
+  "year": 2025,
+  "month": 12,
+  "set": 1,
+  "count": 150,
+  "sections": [
+   {
+    "name": "Conversation One",
+    "n": 22
+   },
+   {
+    "name": "Conversation Two",
+    "n": 32
+   },
+   {
+    "name": "Passage One",
+    "n": 16
+   },
+   {
+    "name": "Passage Two",
+    "n": 18
+   },
+   {
+    "name": "Recording One",
+    "n": 20
+   },
+   {
+    "name": "Recording Two",
+    "n": 22
+   },
+   {
+    "name": "Recording Three",
+    "n": 20
+   }
+  ],
+  "zhCount": 150,
+  "timed": false
+ },
+ {
+  "id": "2025-12-2",
+  "label": "2025年12月 第二套",
+  "year": 2025,
+  "month": 12,
+  "set": 2,
+  "count": 151,
+  "sections": [
+   {
+    "name": "Conversation One",
+    "n": 38
+   },
+   {
+    "name": "Conversation Two",
+    "n": 25
+   },
+   {
+    "name": "Passage One",
+    "n": 11
+   },
+   {
+    "name": "Passage Two",
+    "n": 11
+   },
+   {
+    "name": "Recording One",
+    "n": 17
+   },
+   {
+    "name": "Recording Two",
+    "n": 18
+   },
+   {
+    "name": "Recording Three",
+    "n": 31
+   }
+  ],
+  "zhCount": 151,
+  "timed": false
+ }
+]

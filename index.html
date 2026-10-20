@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="CET-6 每日训练：单词闪卡、每日阅读、每日听力、每日翻译">
+<meta name="theme-color" content="#ffffff">
+<title>CET-6 每日训练</title>
+
+<!-- 添加到主屏幕 / PWA 相关（全部用相对路径，部署到子目录也不会坏） -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CET6">
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ================= 顶部：天数切换 + 四个模块的标签 ================= -->
+  <header class="topbar">
+    <div class="head-row">
+      <h1 class="brand">CET-6 每日训练</h1>
+      <button type="button" id="btnToday" class="mini ghost">回到今天</button>
+    </div>
+
+    <div class="day-row">
+      <button type="button" id="prevDay" class="mini square" aria-label="前一天">&lsaquo;</button>
+      <div class="day-label">
+        <strong>Day <span id="dayNum">1</span></strong>
+        <span class="muted tiny" id="dayMeta">/ 1 &middot; &mdash;</span>
+      </div>
+      <button type="button" id="nextDay" class="mini square" aria-label="后一天">&rsaquo;</button>
+    </div>
+
+    <nav class="tabs" role="tablist">
+      <button type="button" class="tab active" data-tab="words" role="tab">单词</button>
+      <button type="button" class="tab" data-tab="reading" role="tab">阅读</button>
+      <button type="button" class="tab" data-tab="listening" role="tab">听力</button>
+      <button type="button" class="tab" data-tab="intensive" role="tab">精听</button>
+      <button type="button" class="tab" data-tab="translation" role="tab">翻译</button>
+      <button type="button" class="tab" data-tab="vocab" role="tab">生词本<span class="tab-badge hidden" id="vocabBadge">0</span></button>
+    </nav>
+  </header>
+
+  <main id="main">
+    <p class="loading" id="loading">正在加载数据…</p>
+
+    <!-- ========================= 1. 单词闪卡 ========================= -->
+    <section id="view-words" class="view active">
+      <div class="card" id="cardWrap">
+        <div class="card-head">
+          <span class="tag">单词闪卡</span>
+          <span class="muted tiny" id="wordProgress">0 / 0</span>
+        </div>
+
+        <!-- 点卡片显示：词性 + 音标 + 美音发音 + 中文；显示后才能点"认识/不认识" -->
+        <div class="flashcard" id="flashcard" tabindex="0" role="button" aria-label="点击显示中文">
+          <div class="word-en" id="wordEn">&mdash;</div>
+          <div class="word-meta hidden" id="wordMeta">
+            <span class="word-pos" id="wordPos"></span>
+            <span class="word-ipa" id="wordIpa"></span>
+            <span class="word-freq hidden" id="wordFreq"></span>
+            <span class="word-level" id="wordLevel"></span>
+            <button type="button" class="speak-btn" id="wordSpeak" data-speak="" aria-label="播放美式发音">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path d="M4 9.5v5h3.6l4.6 3.7V5.8L7.6 9.5H4z" fill="currentColor"/>
+                <path d="M15.8 8.6a4.8 4.8 0 0 1 0 6.8M18.6 6a8.4 8.4 0 0 1 0 12"
+                      fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="word-zh hidden" id="wordZh">&mdash;</div>
+          <div class="word-vocab hidden" id="wordVocab">
+            <button type="button" class="mini" id="btnAddVocab" data-en="">＋ 加入生词本</button>
+          </div>
+          <div class="word-hint muted tiny" id="wordHint">点一下卡片看中文 · 听发音</div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" id="btnKnown" class="btn ok" disabled>认识</button>
+          <button type="button" id="btnUnknown" class="btn no" disabled>不认识</button>
+        </div>
+
+        <div class="btn-row small">
+          <button type="button" id="btnRetry" class="mini">重练本组不认识的</button>
+          <button type="button" id="btnResetWords" class="mini danger">重置单词进度</button>
+        </div>
+      </div>
+
+      <div class="card hidden" id="wordDone">
+        <div class="card-head"><span class="tag">单词闪卡</span></div>
+        <p class="done-title">本组完成</p>
+        <p class="muted" id="wordDoneStat"></p>
+        <button type="button" id="btnNextDeck" class="btn">再抽一组</button>
+      </div>
+
+      <p class="muted tiny stats-line" id="wordStats"></p>
+
+      <!-- 备考天数：随便改，超过素材天数会自动循环二刷 -->
+      <div class="card settings">
+        <div class="card-head"><span class="tag">设置</span></div>
+
+        <div class="set-row">
+          <span class="set-label">备考天数</span>
+          <div class="stepper">
+            <button type="button" id="daysDown" class="mini square" aria-label="减少">−</button>
+            <input type="number" id="totalDays" min="1" max="365" step="1" inputmode="numeric" aria-label="备考天数">
+            <button type="button" id="daysUp" class="mini square" aria-label="增加">+</button>
+          </div>
+        </div>
+
+        <div class="presets">
+          <button type="button" data-days="30">30</button>
+          <button type="button" data-days="45">45</button>
+          <button type="button" data-days="57">57</button>
+          <button type="button" data-days="60">60</button>
+          <button type="button" data-days="90">90</button>
+          <button type="button" data-days="120">120</button>
+        </div>
+
+        <p class="muted tiny" id="daysNote"></p>
+
+        <div class="set-row">
+          <span class="set-label">每天背几个词</span>
+          <div class="stepper">
+            <button type="button" id="countDown" class="mini square" aria-label="减少">−</button>
+            <input type="number" id="dailyCount" min="1" max="200" step="1" inputmode="numeric" aria-label="每天词量">
+            <button type="button" id="countUp" class="mini square" aria-label="增加">+</button>
+          </div>
+        </div>
+
+        <div class="presets">
+          <button type="button" data-count="10">10</button>
+          <button type="button" data-count="15">15</button>
+          <button type="button" data-count="20">20</button>
+          <button type="button" data-count="30">30</button>
+          <button type="button" data-count="44">44</button>
+          <button type="button" data-count="50">50</button>
+        </div>
+
+        <label class="check-row">
+          <input type="checkbox" id="autoSpeak" checked>
+          <span>翻卡时自动读一遍</span>
+        </label>
+
+        <p class="muted tiny" id="wordLibNote">
+          词库共 2487 词，其中 <b>真题高频 1036 词</b>排在最前面，学完才进扩展词。
+          改动后：本组还没开始答会立刻按新词量重抽，已经开始答则下一组生效。
+        </p>
+      </div>
+    </section>
+
+    <!-- ========================= 2. 每日阅读 ========================= -->
+    <section id="view-reading" class="view">
+      <div class="card">
+        <div class="card-head">
+          <span class="tag">每日阅读</span>
+          <span class="muted tiny" id="readingDate"></span>
+        </div>
+        <div id="readingBody"></div>
+      </div>
+    </section>
+
+    <!-- ========================= 3. 每日听力 ========================= -->
+    <section id="view-listening" class="view">
+      <div class="card">
+        <div class="card-head">
+          <span class="tag">每日听力</span>
+          <span class="muted tiny" id="listeningDate"></span>
+        </div>
+        <div id="listeningBody"></div>
+      </div>
+    </section>
+
+    <!-- ==================== 4. 历年听力精听 ==================== -->
+    <section id="view-intensive" class="view">
+      <div class="card">
+        <div class="card-head">
+          <span class="tag">历年听力精听</span>
+          <span class="muted tiny" id="intensiveMeta"></span>
+        </div>
+
+        <div class="pick-row">
+          <select id="pickYear" aria-label="选年份"></select>
+          <select id="pickSet" aria-label="选套卷"></select>
+        </div>
+        <div class="pick-actions">
+          <button type="button" id="btnZhAll" class="mini">展开全部翻译</button>
+          <button type="button" id="btnZhNone" class="mini">收起全部翻译</button>
+        </div>
+
+        <div id="intensiveBody"></div>
+      </div>
+    </section>
+
+    <!-- ========================= 5. 每日翻译 ========================= -->
+    <section id="view-translation" class="view">
+      <div class="card">
+        <div class="card-head">
+          <span class="tag">每日翻译</span>
+          <span class="muted tiny" id="translationDate"></span>
+        </div>
+        <div id="translationBody"></div>
+      </div>
+    </section>
+    <!-- ========================= 6. 生词本 ========================= -->
+    <section id="view-vocab" class="view">
+      <div class="card">
+        <div class="card-head">
+          <span class="tag">生词本</span>
+          <span class="muted tiny" id="vocabMeta"></span>
+        </div>
+        <div id="vocabBody"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot muted tiny">
+    数据文件：words.json / reading.json / listening.json / translation.json / dict.json &middot; 精听：listen/ &middot; 音频：audio/seg/
+    <br>发音由有道词典接口提供（需联网） &middot; 进度和生词本只存在这台设备的浏览器里，换设备不互通。
+  </footer>
+</div>
+
+<noscript><p style="padding:16px">这个页面需要开启 JavaScript 才能使用。</p></noscript>
+
+<!-- 阅读取词浮层（右键 / 长按 / 划词时出现） -->
+<div id="dictPop" class="dict-pop hidden" role="dialog" aria-live="polite"></div>
+
+<!-- 自由取词浮层（鼠标选中任意一段文字后出现，整句/整段翻译） -->
+<div id="selPop" class="sel-pop hidden" role="dialog" aria-live="polite"></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

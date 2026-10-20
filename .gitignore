@@ -1,0 +1,8 @@
+# 本地临时目录（构建中间产物、浏览器测试用户目录）
+_probe/
+_build/
+
+# 系统杂项
+.DS_Store
+Thumbs.db
+desktop.ini
