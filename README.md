@@ -24,7 +24,8 @@ D:\cet6\                    ← 仓库根目录，同时也是部署目录（Pag
 ├── js/
 │   └── app.js              ← 全部逻辑（读 JSON、抽词、取词、发音、四步听力、存进度）
 ├── words.json              ← 词库 2487 词（含音标 pos / us，来自六级词表）
-├── dict.json               ← 阅读取词词典：常用词 226 条 + 词组 50 条
+├── dict.json               ← 阅读取词词典：常用词 226 条 + 词组 50 条（手写）
+├── dict_extra.json         ← 补充词典：6500 条，build_dict_extra.py 生成（勿手改），覆盖正文 99.5% 的词次
 ├── reading.json            ← 每日阅读：57 篇（2016–2026 六级真题 Section C 仔细阅读原文，每篇 374–709 词 + 一句长难句解析）
 ├── listening.json          ← 每日听力：77 天（11 套 × 7 个 section），每天一段 168–300 秒真题（原文 + 念题，含翻译、挖空、题目、解析定位）
 ├── translation.json        ← 每日翻译：57 篇（2015–2025 六级翻译真题，中文原文 + 手写参考译文）
@@ -42,11 +43,13 @@ D:\cet6\                    ← 仓库根目录，同时也是部署目录（Pag
 ├── tools/
 │   ├── build-listen-data.py ← 从公开真题仓库生成 listen/*.json
 │   ├── mark-high-freq.py ← 把「真题高频」标记写回 words.json 并把高频词排到最前
+│   ├── build_dict_extra.py ← 从有道接口抓正文里没收录的词，生成 dict_extra.json（音标/词性/中文）
 │   ├── push.sh            ← 一键推送（token 只在命令里用一次，不写进 .git/config）
 │   ├── check_live.js      ← 线上验收：无头 Chrome 打开 Pages 真跑一遍
 │   ├── mk_shortcut.py     ← 生成桌面快捷方式（图标路径从仓库位置推导）
 │   ├── listening/         ← 每日听力 77 段的完整构建管线（下载 → 包络 → 切点 → 切片 → 校验）
 │   ├── reading/           ← 每日阅读 57 篇的构建管线（取 TXT → 抽原文 → 选长难句 → 写解析 → 校验）
+│   │                         另有 test_lookup.js：取词浮层冒烟测试（音标/词性/发音/朗读）
 │   └── translation/       ← 每日翻译 57 篇的构建管线（取 md → 切块 → 手写译文 → 合并 → 校验）
 └── README.md               ← 本文件
 ```
@@ -201,10 +204,13 @@ git push origin main          # 走 VPN；token 用 tools/push.sh 传，别写�
 
 - 选中范围是**淡绿底色**，和取词卡片的蓝底区分开
 - 浮层里是：原文（最多 3 行）+ 中文译文 + 按钮
+  - **朗读**（🔊）：把这段原文念出来。有道发音接口只认词典里有的词条/短语，整句会返回 500，
+    所以失败时自动退到浏览器自带的语音合成（`speechSynthesis`）
   - **复制译文**：一键进剪贴板
   - **网页词典**：跳有道看这一段的详细解释
   - **＋ 生词本**：选中 4 个词以内才出现，直接把这个词组收进生词本
-- 只选中**一个单词**时优先用本地词典（比机翻准、不联网），本地没有才走在线翻译
+- **只选中一个单词时不走这个浮层**，而是弹完整的单词卡（音标 + 词性 + 发音 + 生词本），
+  见下一节。以前两者共用这个浮层，所以选中一个词只能看到一行译文，既没有音标也没有发音按钮
 - 电脑上浮层跟着选区出现在下面（放不下就翻到上面）；手机上从底部弹出
 - 点空白处 / 按 `Esc` 关闭
 
@@ -372,9 +378,9 @@ git push origin main          # 走 VPN；token 用 tools/push.sh 传，别写�
 
 现在的 57 条全部来自 2015.06–2025.12 的六级翻译真题，取最新的 57 套。`ref` 没有数据源可用——公开题库只有中文原文，参考答案散落在扫描版解析 PDF 里，OCR 成本比手写还高。生成方法见第十一节 5。
 
-### 6. 取词词典 dict.json
+### 6. 取词词典 dict.json / dict_extra.json
 
-阅读里点词时，查词顺序是：**词组 → words.json → dict.json 的 words → 词形还原再查一遍 → 在线词典兜底**。
+阅读里点词时，查词顺序是：**词组 → words.json → dict.json 的 words → dict_extra.json → 词形还原再查一遍 → 在线词典兜底**。
 
 ```json
 {
@@ -382,6 +388,22 @@ git push origin main          # 走 VPN；token 用 tools/push.sh 传，别写�
   "phrases": [{ "en": "in other words", "zh": "换句话说", "usage": "插入语，用逗号与主句隔开……" }]
 }
 ```
+
+`dict.json` 是**手写**的，只放常用词和固定搭配（226 + 50 条），优先级最高。
+
+`dict_extra.json` 是 **`tools/build_dict_extra.py` 自动生成**的（6500 条，勿手改）：
+把阅读 / 听力 / 翻译正文里出现、但上面两个文件没收录的词，从有道词典接口一次性抓下
+音标 + 词性 + 中文释义。加它是为了把取词覆盖率从 **59% 提到 99.5%** ——
+没它的话，正文里一半以上的词点开只能落到在线接口，而在线接口（`api.dictionaryapi.dev`）
+很不稳定，经常 502/530，卡片上就只剩一行机翻的中文，既没有音标也没有词性。
+
+```bash
+python tools/build_dict_extra.py            # 增量：已经有的词跳过
+python tools/build_dict_extra.py --rebuild  # 全量重抓
+```
+
+文件 1.3MB（gzip 约 480KB），**不进首屏**：页面渲染完 800ms 后在后台拉，
+取词时如果还没到就等它（同一个 promise，只请求一次）。拉不到也不影响使用，会退回在线词典。
 
 ---
 
@@ -416,14 +438,20 @@ git push origin main          # 走 VPN；token 用 tools/push.sh 传，别写�
 
 ## 十、发音和取词是怎么实现的（不用后端）
 
-- **单词发音**：直接请求有道词典发音接口 `dict.youdao.com/dictvoice?type=2&audio=单词`（type=2 是美音），用 `new Audio()` 播放，不需要后端、不需要 key
-- **音标**：词库里的 `us` 字段（离线可用）
+- **单词发音**：直接请求有道词典发音接口 `dict.youdao.com/dictvoice?type=2&audio=单词`（type=2 是美音），用 `new Audio()` 播放，不需要后端、不需要 key。
+  这个接口只对**词典里收录的词条/短语**有效（`take off`、`as a matter of fact` 都行），随便一句原文会返回 500，
+  所以失败时自动退到 `speechSynthesis`（浏览器自带语音合成），整段也能念
+- **音标 / 词性**：`words.json`、`dict.json`、`dict_extra.json` 里的 `us` / `pos` 字段，全部离线
 - **阅读取词**：短文在渲染时被切成 `<span class="w">`，监听 `contextmenu`（右键/长按）和 `mousedown(button=2)+mousemove`（按住右键划词），手机上点词也能查
-- **在线兜底**：本地查不到时请求 `api.dictionaryapi.dev`（免费、支持跨域），给出音标 + 英文释义 + 发音
-- **自由取词**：监听 `mouseup`（桌面）/ `selectionchange`（触屏），读 `window.getSelection()` 拿到选区文字，请求 `api.mymemory.translated.net` 翻译；选区在 `#main` 里、不在输入框里才触发
+- **在线兜底**：本地查不到时同时发两个请求 —— `api.dictionaryapi.dev`（音标 + 词性 + 英文释义 + 发音）和
+  `api.mymemory.translated.net`（机翻中文）。谁先回来先显示，另一个到了再补上；
+  串行的话慢的那个会一直拖住整张卡片，而这两个接口在国内一个通一个不通是常事
+- **自由取词**：监听 `mouseup`（桌面）/ `selectionchange`（触屏），读 `window.getSelection()` 拿到选区文字。
+  选区是**一个单词**时改走单词卡（音标 / 词性 / 发音 / 生词本），其余情况才走翻译浮层
 - **听力播放**：自己写的小播放器（不是原生 `controls`），这样才能数播放次数、按秒切单句；底层还是 `new Audio()` + `timeupdate` 看门狗
 
-> 发音和在线兜底都需要联网。**断网时**：音标、释义、词组用法、听力原文/翻译/题目照常显示（都在本地 JSON 里），音频也在本地，只有发音按钮点不出声。
+> 发音需要联网。**断网时**：音标、词性、释义、词组用法、听力原文/翻译/题目照常显示（都在本地 JSON 里），
+> 音频也在本地，只有发音按钮点不出声。取词本身已经完全离线 —— 补充词典覆盖了正文 99.5% 的词次。
 
 ---
 

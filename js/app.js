@@ -9,6 +9,8 @@
    【加音频】      mp3 放进 audio/，listening.json 的 "audio" 写相对路径
    【加原文】      listening.json 的 "lines": ["第一行", "第二行", ...]
    【阅读取词词典】dict.json：words = 常用词补充，phrases = 词组/固定搭配
+                   dict_extra.json：tools/build_dict_extra.py 生成的补充词典（勿手改），
+                   正文里出现但上面两个文件没收录的词，带音标/词性/中文释义
    【清空本机进度】浏览器控制台：localStorage.removeItem('cet6.v1')
    ========================================================================= */
 
@@ -31,7 +33,7 @@
     'stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
 
   /* ---------- 运行时数据 ---------- */
-  var DATA = { words: [], reading: [], listening: [], translation: [], dict: { words: [], phrases: [] } };
+  var DATA = { words: [], reading: [], listening: [], translation: [], dict: { words: [], phrases: [] }, dictExtra: { words: [] } };
   var WORD_MAP = Object.create(null);   // en -> 词条（words.json）
   var DICT_MAP = Object.create(null);   // en -> 词条（dict.json 的常用词）
   var PHRASE_MAP = Object.create(null); // "in other words" -> 词组条目
@@ -196,6 +198,27 @@
     });
   }
 
+  /* ---------- 补充词典（dict_extra.json） ----------
+     tools/build_dict_extra.py 生成的，约 6500 条，是正文里出现、但 words.json / dict.json
+     没收录的词，带音标/词性/中文释义。原始 1.3MB、gzip 约 480KB —— 放进首屏太重，
+     所以等页面渲染完在后台拉，取词时如果还没到就等它（同一个 promise，只请求一次）。 */
+  var extraPromise = null;
+
+  function loadExtra() {
+    if (extraPromise) return extraPromise;
+    extraPromise = loadJson('dict_extra').then(function (d) {
+      DATA.dictExtra = (d && typeof d === 'object') ? d : { words: [] };
+      // 只填空缺：手写的 words.json / dict.json 永远优先
+      (DATA.dictExtra.words || []).forEach(function (w) {
+        if (w && w.en && !DICT_MAP[w.en.toLowerCase()]) DICT_MAP[w.en.toLowerCase()] = w;
+      });
+      return true;
+    }).catch(function () {
+      return false;      // 拉不到就算了，走在线词典兜底
+    });
+    return extraPromise;
+  }
+
   /* =====================================================================
      四、天数
      ===================================================================== */
@@ -263,7 +286,7 @@
   var audioEl = null;
   var audioFailed = false;
 
-  function speak(text, btn) {
+  function speak(text, btn, onFail) {
     if (!text) return;
     if (!audioEl) {
       audioEl = new Audio();
@@ -272,6 +295,7 @@
     audioEl.onerror = function () {
       audioFailed = true;
       if (btn) btn.classList.add('fail');
+      if (onFail) onFail();
     };
     audioEl.src = SPEAK_API + encodeURIComponent(text);
     var p = audioEl.play();
@@ -285,8 +309,34 @@
     }
   }
 
+  // 有道发音只对词典里收录的词条/短语有效：单个单词、take off、as a matter of fact 都能念，
+  // 但随便一句原文会直接 500。所以失败时退到浏览器自带的语音合成，整段也能念出来。
+  function speakAny(text, btn) {
+    speak(text, btn, function () { speakTTS(text, btn); });
+  }
+
+  function speakTTS(text, btn) {
+    var synth = window.speechSynthesis;
+    if (!synth || !window.SpeechSynthesisUtterance) return;
+    try {
+      synth.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US';
+      u.rate = 0.95;
+      var vs = synth.getVoices() || [];
+      for (var i = 0; i < vs.length; i++) {
+        if (/^en[-_]/i.test(vs[i].lang)) { u.voice = vs[i]; break; }
+      }
+      if (btn) {
+        u.onstart = function () { btn.classList.remove('fail'); btn.classList.add('playing'); };
+        u.onend = function () { btn.classList.remove('playing'); };
+        u.onerror = function () { btn.classList.remove('playing'); };
+      }
+      synth.speak(u);
+    } catch (e) { /* 没有语音合成就安静失败，按钮不闪 */ }
+  }
+
   /* =====================================================================
-     六、词典（阅读取词）
      ---------------------------------------------------------------------
      查词顺序：词组 → words.json → dict.json → 词形还原再查 → 在线词典兜底
      ===================================================================== */
@@ -312,6 +362,10 @@
     function add(x) { if (x && x.length > 1 && out.indexOf(x) < 0) out.push(x); }
 
     if (IRREGULAR[w]) add(IRREGULAR[w]);
+
+    // 所有格：world's → world，artists' → artists（再靠上面的 -s 规则落回 artist）
+    if (/['\u2019]s$/.test(w)) add(w.slice(0, -2));
+    if (/s['\u2019]$/.test(w)) add(w.slice(0, -1));
 
     if (/ies$/.test(w)) add(w.slice(0, -3) + 'y');
     if (/ves$/.test(w)) { add(w.slice(0, -3) + 'f'); add(w.slice(0, -3) + 'fe'); }
@@ -400,6 +454,29 @@
     pop.innerHTML = html + vocabBtnHtml(word);
   }
 
+  // 完整词条卡片（词组 / 单词两种版式）。取词命中本地词典时走这里，
+  // 后台补充词典「补到了」时也走这里 —— 保证两条路画出来的是同一张卡。
+  function paintEntry(pop, entry) {
+    if (entry.type === 'phrase') {
+      paintPop(pop,
+        '<div class="dp-head"><span class="dp-word">' + esc(entry.en) + '</span>' +
+          '<span class="dp-tag">词组</span>' +
+          '<button type="button" class="dp-speak" data-speak="' + esc(entry.en) + '" aria-label="发音">' + ICON_SPEAK + '</button>' +
+          '<button type="button" class="dp-close" data-close="1" aria-label="关闭">×</button></div>' +
+        '<div class="dp-zh">' + esc(entry.zh || '') + '</div>' +
+        (entry.usage ? '<div class="dp-usage"><b>用法</b>' + esc(entry.usage) + '</div>' : ''), entry.en);
+    } else {
+      paintPop(pop,
+        '<div class="dp-head"><span class="dp-word">' + esc(entry.en) + '</span>' +
+          (entry.pos ? '<span class="dp-pos">' + esc(entry.pos) + '</span>' : '') +
+          '<button type="button" class="dp-speak" data-speak="' + esc(entry.en) + '" aria-label="发音">' + ICON_SPEAK + '</button>' +
+          '<button type="button" class="dp-close" data-close="1" aria-label="关闭">×</button></div>' +
+        (entry.us ? '<div class="dp-ipa">/' + esc(entry.us) + '/</div>' : '') +
+        '<div class="dp-zh">' + esc(entry.zh || '') + '</div>' +
+        (entry.lemma ? '<div class="dp-note">原文 ' + esc(entry.word) + ' 是 ' + esc(entry.lemma) + ' 的变化形式</div>' : ''), entry.en);
+    }
+  }
+
   function openDict(rawText, anchorEl, spanText, keepHighlight) {
     var pop = $('dictPop');
     if (!pop) return;
@@ -412,54 +489,72 @@
     popExtra = null;
 
     if (entry) {
-      display = entry.en;
-      if (entry.type === 'phrase') {
-        paintPop(pop,
-          '<div class="dp-head"><span class="dp-word">' + esc(entry.en) + '</span>' +
-            '<span class="dp-tag">词组</span>' +
-            '<button type="button" class="dp-speak" data-speak="' + esc(entry.en) + '" aria-label="发音">' + ICON_SPEAK + '</button>' +
-            '<button type="button" class="dp-close" data-close="1" aria-label="关闭">×</button></div>' +
-          '<div class="dp-zh">' + esc(entry.zh || '') + '</div>' +
-          (entry.usage ? '<div class="dp-usage"><b>用法</b>' + esc(entry.usage) + '</div>' : ''), display);
-      } else {
-        paintPop(pop,
-          '<div class="dp-head"><span class="dp-word">' + esc(entry.en) + '</span>' +
-            (entry.pos ? '<span class="dp-pos">' + esc(entry.pos) + '</span>' : '') +
-            '<button type="button" class="dp-speak" data-speak="' + esc(entry.en) + '" aria-label="发音">' + ICON_SPEAK + '</button>' +
-            '<button type="button" class="dp-close" data-close="1" aria-label="关闭">×</button></div>' +
-          (entry.us ? '<div class="dp-ipa">/' + esc(entry.us) + '/</div>' : '') +
-          '<div class="dp-zh">' + esc(entry.zh || '') + '</div>' +
-          (entry.lemma ? '<div class="dp-note">原文 ' + esc(entry.word) + ' 是 ' + esc(entry.lemma) + ' 的变化形式</div>' : ''), display);
-      }
+      paintEntry(pop, entry);
     } else {
-      paintPop(pop,
-        '<div class="dp-head"><span class="dp-word">' + esc(display) + '</span>' +
-          '<button type="button" class="dp-speak" data-speak="' + esc(display) + '" aria-label="发音">' + ICON_SPEAK + '</button>' +
+      // 本地没收录：先看后台的补充词典到了没有（到了就直接是完整词条），
+      // 没到就同时发在线词典（音标/词性/英文释义）和机翻（中文释义），
+      // 谁先回来先显示、另一个到了再补上。串行的话慢的那一个会一直拖住整张卡片。
+      var cur = { pos: '', ipa: '', audio: '', def: '', example: '', zh: '', failed: false, local: false };
+
+      var render = function () {
+        var html = '<div class="dp-head"><span class="dp-word">' + esc(display) + '</span>' +
+          (cur.pos ? '<span class="dp-pos">' + esc(cur.pos) + '</span>' : '') +
+          '<button type="button" class="dp-speak" data-speak="' + esc(display) + '" data-audio="' + esc(cur.audio) + '" aria-label="发音">' + ICON_SPEAK + '</button>' +
           '<button type="button" class="dp-close" data-close="1" aria-label="关闭">×</button></div>' +
-        '<div class="dp-zh muted">本地词典未收录，正在查在线词典…</div>' +
-        '<a class="dp-link" target="_blank" rel="noopener" href="' + YOUDAO_PAGE + encodeURIComponent(display) + '">在网页词典中查看 →</a>', display);
+          (cur.ipa ? '<div class="dp-ipa">/' + esc(cur.ipa) + '/</div>' : '');
+
+        if (cur.zh) {
+          // 本地补充词典的中文释义已经是完整的，不需要再挂一条英文释义
+          html += '<div class="dp-zh">' + esc(cur.zh) +
+            (cur.def && !cur.local ? '<div class="dp-note">英文释义：' + esc(cur.def) + '</div>' : '') + '</div>';
+        } else if (cur.def) {
+          html += '<div class="dp-zh">' + esc(cur.def) + '</div>';
+        } else if (cur.failed) {
+          html += '<div class="dp-zh muted">本地和在线词典都没有查到（可能是专有名词或拼写特殊）。</div>';
+        } else {
+          html += '<div class="dp-zh muted">本地词典未收录，正在查在线词典…</div>';
+        }
+
+        html += (cur.example ? '<div class="dp-usage"><b>例</b>' + esc(cur.example) + '</div>' : '') +
+          '<a class="dp-link" target="_blank" rel="noopener" href="' + YOUDAO_PAGE + encodeURIComponent(display) + '">在网页词典中查看 →</a>';
+
+        paintPop(pop, html, display);
+        if (!pop.classList.contains('hidden')) positionDict(anchorEl);   // 补内容后高度变了，重新摆一次
+      };
+
+      render();
 
       onlineLookup(display).then(function (r) {
         if (token !== popToken) return;
         popExtra = r;
-        paintPop(pop,
-          '<div class="dp-head"><span class="dp-word">' + esc(display) + '</span>' +
-            (r.pos ? '<span class="dp-pos">' + esc(r.pos) + '</span>' : '') +
-            '<button type="button" class="dp-speak" data-speak="' + esc(display) + '" data-audio="' + esc(r.audio || '') + '" aria-label="发音">' + ICON_SPEAK + '</button>' +
-            '<button type="button" class="dp-close" data-close="1" aria-label="关闭">×</button></div>' +
-          (r.ipa ? '<div class="dp-ipa">/' + esc(r.ipa) + '/</div>' : '') +
-          '<div class="dp-zh">' + esc(r.def || '（无释义）') + '</div>' +
-          (r.example ? '<div class="dp-usage"><b>例</b>' + esc(r.example) + '</div>' : '') +
-          '<div class="dp-note">来源：在线词典（英文释义）</div>' +
-          '<a class="dp-link" target="_blank" rel="noopener" href="' + YOUDAO_PAGE + encodeURIComponent(display) + '">在网页词典中查看 →</a>', display);
+        cur.pos = r.pos; cur.ipa = r.ipa; cur.audio = r.audio;
+        cur.def = r.def; cur.example = r.example;
+        render();
       }).catch(function () {
         if (token !== popToken) return;
-        paintPop(pop,
-          '<div class="dp-head"><span class="dp-word">' + esc(display) + '</span>' +
-            '<button type="button" class="dp-speak" data-speak="' + esc(display) + '" aria-label="发音">' + ICON_SPEAK + '</button>' +
-            '<button type="button" class="dp-close" data-close="1" aria-label="关闭">×</button></div>' +
-          '<div class="dp-zh muted">本地和在线词典都没有查到（可能是专有名词或拼写特殊）。</div>' +
-          '<a class="dp-link" target="_blank" rel="noopener" href="' + YOUDAO_PAGE + encodeURIComponent(display) + '">在网页词典中查看 →</a>', display);
+        cur.failed = true;
+        render();
+      });
+
+      // 本地词典没收录的词，在线词典只给英文释义 —— CET-6 备考看中文更有用，
+      // 所以再机翻一条补上，英文释义降级成小字注在下面
+      translateText(display).then(function (zh) {
+        if (token !== popToken) return;
+        if (cur.zh) return;                      // 补充词典已经给了更准的中文释义
+        cur.zh = zh;
+        if (popExtra) popExtra.zh = zh;
+        render();
+      }).catch(function () { /* 机翻不通就保持英文释义，不影响主流程 */ });
+
+      // 补充词典（后台加载中）到了：它带音标 + 词性 + 中文，比在线那两个准得多，
+      // 直接换掉整张卡
+      loadExtra().then(function (ok) {
+        if (!ok || token !== popToken) return;
+        var hit = findEntry(display);
+        if (!hit) return;
+        popExtra = { zh: hit.zh || '', pos: hit.pos || '', ipa: hit.us || '', def: '', audio: '' };
+        paintEntry(pop, hit);
+        if (!pop.classList.contains('hidden')) positionDict(anchorEl);
       });
     }
 
@@ -473,6 +568,32 @@
         anchorEl.classList.add('active');
       }
     }
+  }
+
+  // 「取词」和「自由取词」是两套浮层：前者有音标/词性/发音/例句，后者只有一行译文。
+  // 只选中一个单词时必须走前者 —— 否则用户选中的是一个词，看到的却是一张
+  // 没有音标、没有词性、也没有发音按钮的卡片。
+  // 顺手剥掉首尾标点：双击 "accommodate," 时选区可能把逗号一起带上。
+  function oneWordOf(t) {
+    var s = String(t || '').trim().replace(/^[^A-Za-z]+|[^A-Za-z'\u2019-]+$/g, '');
+    return /^[A-Za-z][A-Za-z'\u2019-]*$/.test(s) ? s : '';
+  }
+
+  // 选区落在没做过分词的地方（听力原文、翻译页）时，用选区矩形充当锚点，
+  // 让 positionDict / contextOf 这些按元素写的函数照样能用
+  function rectAnchor(r) {
+    return {
+      getBoundingClientRect: function () { return r; },
+      classList: { contains: function () { return false; } },
+      closest: function () { return null; }
+    };
+  }
+
+  function wordElOfSel(sel) {
+    var node = sel && sel.anchorNode;
+    if (!node) return null;
+    var el = node.nodeType === 1 ? node : node.parentElement;
+    return el && el.closest ? el.closest('.w') : null;
   }
 
   function positionDict(anchorEl) {
@@ -587,6 +708,7 @@
     pop.innerHTML =
       '<div class="sp-head">' +
         '<span class="sp-src">' + esc(text) + '</span>' +
+        '<button type="button" class="sp-speak" data-sp="speak" aria-label="朗读这段">' + ICON_SPEAK + '</button>' +
         '<button type="button" class="sp-close" data-sp="close" aria-label="关闭">×</button>' +
       '</div>' +
       '<div class="sp-zh loading" id="spZh">翻译中…</div>' +
@@ -659,7 +781,27 @@
   function maybeShowSel() {
     var sel = window.getSelection();
     var text = selText();
-    if (!text || text.length < 2) {
+    if (!text) {
+      closeSelPop();
+      return;
+    }
+
+    // 只选中一个词：交给单词卡，别用只有译文的自选取词浮层
+    var one = oneWordOf(text);
+    if (one) {
+      var pop = $('dictPop');
+      var wordEl = (pop && !pop.classList.contains('hidden')) ? pop.querySelector('.dp-word') : null;
+      if (wordEl && wordEl.textContent.toLowerCase() === one.toLowerCase()) return;   // 已经在显示这个词了
+      var wEl = wordElOfSel(sel);
+      var r0 = wEl ? null : selRect(sel);
+      if (!wEl && !r0) return;
+      closeSelPop();
+      SEL.last = one;
+      openDict(one, wEl || rectAnchor(r0), one);
+      return;
+    }
+
+    if (text.length < 2) {
       closeSelPop();
       return;
     }
@@ -685,6 +827,7 @@
       var zhEl = $('spZh');
 
       if (act === 'close') { closeSelPop(); return; }
+      if (act === 'speak') { speakAny(SEL.last, btn); return; }
       if (act === 'copy') {
         var txt = zhEl ? zhEl.textContent : '';
         if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -1709,7 +1852,7 @@
       return { en: e.en, zh: e.zh || '', pos: e.pos || '', us: e.us || '', type: e.type };
     }
     var x = popExtra || {};
-    return { en: String(en), zh: x.def || '', pos: x.pos || '', us: x.ipa || '', type: 'word' };
+    return { en: String(en), zh: x.zh || x.def || '', pos: x.pos || '', us: x.ipa || '', type: 'word' };
   }
 
   function renderVocabBadge(n) {
@@ -2148,9 +2291,9 @@
           if (!audioEl) { audioEl = new Audio(); }
           audioEl.src = audioUrl;
           var p = audioEl.play();
-          if (p && p.catch) p.catch(function () { speak(word, speakBtn); });
+          if (p && p.catch) p.catch(function () { speakAny(word, speakBtn); });
         } else {
-          speak(word, speakBtn);
+          speakAny(word, speakBtn);
         }
         e.stopPropagation();
         return;
@@ -2445,6 +2588,10 @@
       switchTab(TABS.indexOf(h) >= 0 ? h : 'words');
 
       registerSW();
+
+      // 首屏渲染完了再在后台拉补充词典（1.3MB / gzip 约 480KB）。
+      // 放到首屏 Promise.all 里会把白屏时间拖长一倍，而它只影响取词。
+      setTimeout(function () { loadExtra(); }, 800);
     }).catch(function (err) {
       var isFile = location.protocol === 'file:';
       fatal(

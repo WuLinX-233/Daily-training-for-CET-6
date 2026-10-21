@@ -51,7 +51,9 @@ function ok(name, cond, extra) {
     ok('参考译文可以展开', !r2.hidden);
     ok('参考译文超过 80 词', r2.words > 80, r2.words + ' 词');
 
-    // 草稿自动保存
+    // 草稿自动保存。注意别写死 day 1：这个 profile 是复用的，上一轮测试可能把天数留在 57，
+    // 草稿是按天号存的，写死 1 会在「先跑阅读测试再跑这个」时假失败。
+    const day = await cdp.eval(`document.getElementById('dayNum').textContent.trim()`);
     const r3 = await cdp.eval(`(function(){
       var t = document.getElementById('transInput');
       t.value = 'test draft 123';
@@ -60,8 +62,8 @@ function ok(name, cond, extra) {
     })()`);
     await sleep(400);
     const saved = await cdp.eval(
-      `JSON.parse(localStorage.getItem('cet6.v1')).translation['1'] || ''`);
-    ok('草稿写入 localStorage', saved === 'test draft 123', JSON.stringify(saved));
+      `JSON.parse(localStorage.getItem('cet6.v1')).translation[${JSON.stringify(day)}] || ''`);
+    ok('草稿写入 localStorage（Day ' + day + '）', saved === 'test draft 123', JSON.stringify(saved));
 
     // 第 57 天
     await cdp.eval(`(function(){
