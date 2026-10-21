@@ -218,6 +218,25 @@ def coverage(fr, thr, spans):
     return v[len(v) // 2] if v else 0.0
 
 
+def search(fr, durs, t_end, reg0):
+    """在 [reg0, t_end] 里搜 (发声阈值, 时长缩放比)，返回 R 最高的一组。"""
+    best = None
+    for tf in THRS:
+        t2 = max(fr) * tf
+        rs = speech_runs(fr, t2, 0.25, reg0, t_end)
+        if len(rs) < len(durs):
+            continue
+        for S in S_GRID:
+            assign = dp_assign(rs, [d * S for d in durs], t_end - END_TOL)
+            cand = [(rs[a][0], rs[b][1]) for a, b in assign]
+            if coverage(fr, t2, cand) < MIN_COV:
+                continue
+            q = quality(fr, t2, cand)
+            if best is None or q > best[0]:
+                best = (q, tf, S, cand)
+    return best
+
+
 def main():
     dry = '--dry' in sys.argv
     if not os.path.exists(ENV):
@@ -277,20 +296,19 @@ def main():
             # 另外发声阈值也很关键 —— 定得太高会把句子切碎成一堆 0.3 秒的小段，
             # DP 只能在碎段里挑，挑不到「整句」那个跨度（2023-12-1 Passage One
             # 就是换到 2% 才从 R=2.9 跳到 R=52）。两个维度一起粗搜，用 R 当目标。
-            best = None
-            for tf in THRS:
-                t2 = max(fr) * tf
-                rs = speech_runs(fr, t2, 0.25, reg0, t_end)
-                if len(rs) < len(durs):
-                    continue
-                for S in S_GRID:
-                    assign = dp_assign(rs, [d * S for d in durs], t_end - END_TOL)
-                    cand = [(rs[a][0], rs[b][1]) for a, b in assign]
-                    if coverage(fr, t2, cand) < MIN_COV:
-                        continue
-                    q = quality(fr, t2, cand)
-                    if best is None or q > best[0]:
-                        best = (q, tf, S, cand)
+            best = search(fr, durs, t_end, reg0)
+            # 第一节的区间从 0 起，前面可能压着整段「考试说明」。reg0=0 时 DP 会把
+            # 文本塞进说明里 —— 那儿的连续说话最容易凑出「跨度 ≈ 时长」，代价一样低，
+            # 但 R 只有 2.x（2023-12-1 Conversation One 就是这么卡住的）。
+            # 兜底：时间轴的绝对位置不可信，但「这一节占多长」是准的（各句时长加
+            # 句间空隙），用它反推真实起点再搜一遍，取更好的那个。
+            if k == 0:
+                guess = t_end - (T[i1][1] - T[i0][0]) - LEAD_IN
+                if guess > reg0 + 5:
+                    alt = search(fr, durs, t_end, guess)
+                    if alt and (best is None or alt[0] > best[0]):
+                        best = alt
+                        reg0 = guess
             if best is None:
                 print('  %-18s 没找到可用对齐，跳过' % sec)
                 continue

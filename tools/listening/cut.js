@@ -97,7 +97,7 @@ true;`;
     console.log('\n完成 ' + done + ' 段  合计 ' + (bytes / 1048576).toFixed(1) +
       ' MB  用时 ' + ((Date.now() - t0) / 60000).toFixed(1) + ' 分钟');
   } finally {
-    if (cdp) cdp.close();
+    if (cdp) { try { await cdp.quit(); } catch (e) {} }   // Browser.close：真正关掉 Chrome
     try { proc.kill(); } catch (e) {}
     await sleep(500);
     try { fs.rmSync(ud, { recursive: true, force: true }); } catch (e) {}

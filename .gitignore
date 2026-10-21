@@ -5,6 +5,10 @@ _build/
 # 上游源音频（tools/listening/dl.py 可重新下载，67MB，不进仓库）
 tools/listening/src/
 
+# 无头 Chrome 的临时用户目录、cut.js 切出来的中间音频（成品在 audio/seg/）
+tools/listening/_chrome_*/
+tools/listening/seg/
+
 # 系统杂项
 .DS_Store
 Thumbs.db

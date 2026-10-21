@@ -4237,10 +4237,10 @@
   "section": "Conversation One",
   "title": "2025年6月 第一套 · Conversation One",
   "audio": "audio/seg/2025-06-1_conversationone.mp3",
-  "start": 64.72,
-  "end": 258.5,
-  "dur": 193.78,
-  "qAt": 116.28,
+  "start": 4.0,
+  "end": 249.95,
+  "dur": 245.95,
+  "qAt": 176.75,
   "lines": [
    {
     "sp": "M",
@@ -4591,10 +4591,10 @@
   "section": "Conversation Two",
   "title": "2025年6月 第一套 · Conversation Two",
   "audio": "audio/seg/2025-06-1_conversationtwo.mp3",
-  "start": 254.0,
-  "end": 455.5,
-  "dur": 201.5,
-  "qAt": 128.0,
+  "start": 241.7,
+  "end": 447.4,
+  "dur": 205.7,
+  "qAt": 139.8,
   "lines": [
    {
     "sp": "M",
@@ -4994,10 +4994,10 @@
   "section": "Passage One",
   "title": "2025年6月 第一套 · Passage One",
   "audio": "audio/seg/2025-06-1_passageone.mp3",
-  "start": 480.0,
-  "end": 673.5,
-  "dur": 193.5,
-  "qAt": 134.0,
+  "start": 437.4,
+  "end": 665.5,
+  "dur": 228.1,
+  "qAt": 176.25,
   "lines": [
    {
     "sp": "",
@@ -5169,10 +5169,10 @@
   "section": "Passage Two",
   "title": "2025年6月 第一套 · Passage Two",
   "audio": "audio/seg/2025-06-1_passagetwo.mp3",
-  "start": 666.72,
-  "end": 867.5,
-  "dur": 200.78,
-  "qAt": 122.28,
+  "start": 655.5,
+  "end": 859.3,
+  "dur": 203.8,
+  "qAt": 133.0,
   "lines": [
    {
     "sp": "",
@@ -5441,10 +5441,10 @@
   "section": "Recording One",
   "title": "2025年6月 第一套 · Recording One",
   "audio": "audio/seg/2025-06-1_recordingone.mp3",
-  "start": 889.0,
-  "end": 1105.5,
-  "dur": 216.5,
-  "qAt": 160.0,
+  "start": 849.3,
+  "end": 1097.9,
+  "dur": 248.6,
+  "qAt": 199.5,
   "lines": [
    {
     "sp": "",
@@ -5756,10 +5756,10 @@
   "section": "Recording Two",
   "title": "2025年6月 第一套 · Recording Two",
   "audio": "audio/seg/2025-06-1_recordingtwo.mp3",
-  "start": 1102.0,
-  "end": 1338.5,
-  "dur": 236.5,
-  "qAt": 176.0,
+  "start": 1087.9,
+  "end": 1330.55,
+  "dur": 242.65,
+  "qAt": 189.6,
   "lines": [
    {
     "sp": "",
@@ -6064,10 +6064,10 @@
   "section": "Recording Three",
   "title": "2025年6月 第一套 · Recording Three",
   "audio": "audio/seg/2025-06-1_recordingthree.mp3",
-  "start": 1337.99,
-  "end": 1580.58,
-  "dur": 242.59,
-  "qAt": 170.01,
+  "start": 1320.55,
+  "end": 1576.75,
+  "dur": 256.2,
+  "qAt": 186.5,
   "lines": [
    {
     "sp": "",
@@ -14806,10 +14806,10 @@
   "section": "Conversation One",
   "title": "2023年12月 第一套 · Conversation One",
   "audio": "audio/seg/2023-12-1_conversationone.mp3",
-  "start": 148.66,
-  "end": 341.5,
-  "dur": 192.84,
-  "qAt": 117.34,
+  "start": 138.4,
+  "end": 333.25,
+  "dur": 194.85,
+  "qAt": 127.35,
   "lines": [
    {
     "sp": "M",
@@ -15230,10 +15230,10 @@
   "section": "Conversation Two",
   "title": "2023年12月 第一套 · Conversation Two",
   "audio": "audio/seg/2023-12-1_conversationtwo.mp3",
-  "start": 337.0,
-  "end": 522.5,
-  "dur": 185.5,
-  "qAt": 110.0,
+  "start": 323.25,
+  "end": 514.7,
+  "dur": 191.45,
+  "qAt": 123.7,
   "lines": [
    {
     "sp": "W",
@@ -15556,10 +15556,10 @@
   "section": "Passage One",
   "title": "2023年12月 第一套 · Passage One",
   "audio": "audio/seg/2023-12-1_passageone.mp3",
-  "start": 549.92,
-  "end": 729.5,
-  "dur": 179.58,
-  "qAt": 122.08,
+  "start": 504.7,
+  "end": 721.85,
+  "dur": 217.15,
+  "qAt": 166.95,
   "lines": [
    {
     "sp": "",
@@ -15787,10 +15787,10 @@
   "section": "Passage Two",
   "title": "2023年12月 第一套 · Passage Two",
   "audio": "audio/seg/2023-12-1_passagetwo.mp3",
-  "start": 723.78,
-  "end": 923.5,
-  "dur": 199.72,
-  "qAt": 118.22,
+  "start": 711.85,
+  "end": 915.8,
+  "dur": 203.95,
+  "qAt": 130.05,
   "lines": [
    {
     "sp": "",
@@ -16061,10 +16061,10 @@
   "section": "Recording One",
   "title": "2023年12月 第一套 · Recording One",
   "audio": "audio/seg/2023-12-1_recordingone.mp3",
-  "start": 945.0,
-  "end": 1178.5,
-  "dur": 233.5,
-  "qAt": 170.0,
+  "start": 905.8,
+  "end": 1170.35,
+  "dur": 264.55,
+  "qAt": 209.1,
   "lines": [
    {
     "sp": "",
@@ -16418,10 +16418,10 @@
   "section": "Recording Two",
   "title": "2023年12月 第一套 · Recording Two",
   "audio": "audio/seg/2023-12-1_recordingtwo.mp3",
-  "start": 1175.0,
-  "end": 1409.5,
-  "dur": 234.5,
-  "qAt": 174.0,
+  "start": 1160.35,
+  "end": 1401.0,
+  "dur": 240.65,
+  "qAt": 188.75,
   "lines": [
    {
     "sp": "",
@@ -16684,10 +16684,10 @@
   "section": "Recording Three",
   "title": "2023年12月 第一套 · Recording Three",
   "audio": "audio/seg/2023-12-1_recordingthree.mp3",
-  "start": 1406.0,
-  "end": 1671.5,
-  "dur": 265.5,
-  "qAt": 187.0,
+  "start": 1391.0,
+  "end": 1663.75,
+  "dur": 272.75,
+  "qAt": 201.9,
   "lines": [
    {
     "sp": "",
@@ -16975,10 +16975,10 @@
   "section": "Conversation One",
   "title": "2023年12月 第二套 · Conversation One",
   "audio": "audio/seg/2023-12-2_conversationone.mp3",
-  "start": 35.28,
-  "end": 234.5,
-  "dur": 199.22,
-  "qAt": 122.72,
+  "start": 25.45,
+  "end": 226.7,
+  "dur": 201.25,
+  "qAt": 132.55,
   "lines": [
    {
     "sp": "W",
@@ -17416,10 +17416,10 @@
   "section": "Conversation Two",
   "title": "2023年12月 第二套 · Conversation Two",
   "audio": "audio/seg/2023-12-2_conversationtwo.mp3",
-  "start": 230.0,
-  "end": 434.5,
-  "dur": 204.5,
-  "qAt": 128.0,
+  "start": 216.7,
+  "end": 426.55,
+  "dur": 209.85,
+  "qAt": 140.75,
   "lines": [
    {
     "sp": "W",
@@ -17840,10 +17840,10 @@
   "section": "Passage One",
   "title": "2023年12月 第二套 · Passage One",
   "audio": "audio/seg/2023-12-2_passageone.mp3",
-  "start": 455.52,
-  "end": 638.5,
-  "dur": 182.98,
-  "qAt": 125.48,
+  "start": 416.55,
+  "end": 630.85,
+  "dur": 214.3,
+  "qAt": 164.1,
   "lines": [
    {
     "sp": "",
@@ -18106,10 +18106,10 @@
   "section": "Passage Two",
   "title": "2023年12月 第二套 · Passage Two",
   "audio": "audio/seg/2023-12-2_passagetwo.mp3",
-  "start": 636.92,
-  "end": 834.5,
-  "dur": 197.58,
-  "qAt": 117.08,
+  "start": 620.85,
+  "end": 826.65,
+  "dur": 205.8,
+  "qAt": 133.4,
   "lines": [
    {
     "sp": "",
@@ -18362,10 +18362,10 @@
   "section": "Recording One",
   "title": "2023年12月 第二套 · Recording One",
   "audio": "audio/seg/2023-12-2_recordingone.mp3",
-  "start": 856.0,
-  "end": 1100.5,
-  "dur": 244.5,
-  "qAt": 186.0,
+  "start": 816.65,
+  "end": 1092.75,
+  "dur": 276.1,
+  "qAt": 225.4,
   "lines": [
    {
     "sp": "",
@@ -18621,10 +18621,10 @@
   "section": "Recording Two",
   "title": "2023年12月 第二套 · Recording Two",
   "audio": "audio/seg/2023-12-2_recordingtwo.mp3",
-  "start": 1097.0,
-  "end": 1324.5,
-  "dur": 227.5,
-  "qAt": 167.0,
+  "start": 1082.75,
+  "end": 1316.3,
+  "dur": 233.55,
+  "qAt": 181.05,
   "lines": [
    {
     "sp": "",
@@ -18915,10 +18915,10 @@
   "section": "Recording Three",
   "title": "2023年12月 第二套 · Recording Three",
   "audio": "audio/seg/2023-12-2_recordingthree.mp3",
-  "start": 1321.0,
-  "end": 1564.76,
-  "dur": 243.76,
-  "qAt": 171.0,
+  "start": 1306.3,
+  "end": 1562.2,
+  "dur": 255.9,
+  "qAt": 184.95,
   "lines": [
    {
     "sp": "",
